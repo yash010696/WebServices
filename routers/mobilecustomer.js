@@ -68,19 +68,20 @@ mobilecustomerRouter
 
         var token = req.header('Authorization').split(' ');
         var decoded = jwt.verify(token[1], config.secret);
-        console.log(req.body);
+        
         var locationType = req.body.locationType;
-        console.log(locationType);
+       
         var other = {};
         if (locationType === "Home") {
-            console.log("in here111", req.body);
+           
             var home = {
                 pincode: req.body.pincode,
-                'houseNo/flatNo': req.body["houseNo/flatNo"],
+                flat_No: req.body.flat_No,
                 society: req.body.society,
                 landmark: req.body.landmark,
             }
-            Customer.update({ '_id': decoded._id }, { "$push": { "Address": { "home": home } } }, function (err, user) {
+            console.log(home);
+            Customer.update({ '_id': decoded._id }, { "$push": { "address": { "home": home } } }, function (err, user) {
                 if (err) {
                     res.json(err)
                 } if (user) {
@@ -95,7 +96,7 @@ mobilecustomerRouter
                 society: req.body.society,
                 landmark: req.body.landmark,
             }
-            Customer.update({ '_id': decoded._id }, { "$push": { "Address": { "other": other } } }, function (err, user) {
+            Customer.update({ '_id': decoded._id }, { "$push": { "address": { "other": other } } }, function (err, user) {
                 if (err) {
                     res.json(err)
                 } if (user) {

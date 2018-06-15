@@ -4,8 +4,9 @@
   "description": "Example of a RESTful API built with Node.js, Express.js and Mongoose.",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js"
+    "start": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+    
   },
   "engines": {
     "node": "8.9.4"

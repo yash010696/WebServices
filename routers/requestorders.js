@@ -7,6 +7,7 @@ var config = require('./../config/config');
 var { RequestOrder } = require('./../models/requestorder');
 var { OrderStatus } = require('./../models/orderstatus');
 var Customer=require('./../models/customer');
+var Franchise=require('./../models/franchise');
 
 var requestordersRouter = express.Router();
 
@@ -25,6 +26,32 @@ requestordersRouter
 
             // });
 
+            var counter;
+            var orderid;
+            var areacode;
+            Franchise.find({ statee: true , area:'fatemanagar'}).
+              populate('area').
+              exec(function (err, franchises) {
+                console.log('The Franchise  is', franchises);
+                console.log('The Franchise  is//////', err);
+                if (err) {
+                  res.status(500).send(err);
+                  return;
+                }
+                console.log('The Franchise  is', franchises);
+                areacode= franchises[0].area.code;
+                Order.find({franchise:req.userData.franchise}).exec(function (err, results) {
+                  var count = results.length;
+                  counter=count +1;
+                  var str = "" + counter;
+                  var pad = "0000";
+                  var ans = pad.substring(0, pad.length - str.length) + str;
+                  orderid= areacode + ans;
+                  // console.log("orderid",orderid)
+                  
+                   
+                });
+              });
             req.body.created_by = decoded._id;
             req.body.updated_by = decoded._id;
 
