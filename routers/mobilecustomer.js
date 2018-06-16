@@ -7,11 +7,15 @@ var config = require('./../config/config');
 
 var mobilecustomerRouter = express.Router();
 var Customer = require('./../models/customer');
+var Franchise = require('./../models/franchise');
+var Area = require('../models/area');
 var sendmail = require('./../middlewear/mail');
 
 mobilecustomerRouter
-    .get('/',(req,res)=>{
-        res.json("okkkkk");
+    .get('/getarea', (req, res) => {
+        Franchise.find().then((data) => {
+            res.json(data)
+        })
     })
 
     .post('/registration', (req, res) => {
@@ -68,20 +72,22 @@ mobilecustomerRouter
 
         var token = req.header('Authorization').split(' ');
         var decoded = jwt.verify(token[1], config.secret);
-        
+
         var locationType = req.body.locationType;
-       
-        var other = {};
+
+        Customer.find({ '_id': decoded._id }).then((user) => {
+            console.log(user[0].address[0].home[0]);
+        })
         if (locationType === "Home") {
-           
+
             var home = {
                 pincode: req.body.pincode,
                 flat_No: req.body.flat_No,
                 society: req.body.society,
                 landmark: req.body.landmark,
             }
-            console.log(home);
-            Customer.update({ '_id': decoded._id }, { "$push": { "address": { "home": home } } }, function (err, user) {
+
+            Customer.findOneAndUpdate({ '_id': decoded._id }, { "$push": { "address[0]": { "home[0]": home } } }, function (err, user) {
                 if (err) {
                     res.json(err)
                 } if (user) {
@@ -96,11 +102,11 @@ mobilecustomerRouter
                 society: req.body.society,
                 landmark: req.body.landmark,
             }
-            Customer.update({ '_id': decoded._id }, { "$push": { "address": { "other": other } } }, function (err, user) {
+            Customer.update({ '_id': decoded._id }, { "$push": { "address.$.other.$": other } }, function (err, user) {
                 if (err) {
                     res.json(err)
                 } if (user) {
-                    res.status(200).json({ Success: true, Message: 'Address Added Successfully' });
+                    res.status(200).json({ Success: true, Message: 'Address Added Successfully!' });
                 }
             })
         }

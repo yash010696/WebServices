@@ -16,32 +16,35 @@ creditdebitRouter
         var token = req.header('Authorization').split(' ');
         var decoded = jwt.verify(token[1], config.secret);
 
-        if (req.body.BillAmount == req.body.PaidAmount) {
+        if (req.body.billAmount == req.body.paidAmount) {
+            
             CreditDebit.find({ 'created_by': decoded._id }).then((customer) => {
+               
                 if (!customer[0]) {
                     var creditDebit = new CreditDebit();
                     creditDebit.created_by = decoded._id;
                     creditDebit.updated_by = decoded._id;
 
                     creditDebit.save().then((data) => {
-                        res.json(data);
+                        console.log(data)
+                        res.json(data[0]);
                     })
                 }
                 else {
-                    res.json(customer);
+                    res.json(customer[0]);
                 }
             }).catch((err) => {
                 res.json(err);
             })
         }
-        else if (req.body.BillAmount > req.body.PaidAmount) {
-            var PendingAmount = req.body.BillAmount - req.body.PaidAmount;
+        else if (req.body.billAmount > req.body.paidAmount) {
+            var pendingAmount = req.body.billAmount - req.body.paidAmount;
 
             CreditDebit.find({ 'created_by': decoded._id }).then((customer) => {
 
                 if (!customer[0]) {
                     var creditDebit = new CreditDebit();
-                    creditDebit.PendingAmount = PendingAmount;
+                    creditDebit.pendingAmount = pendingAmount;
                     creditDebit.created_by = decoded._id;
                     creditDebit.updated_by = decoded._id;
                     creditDebit.save().then((data) => {
@@ -51,27 +54,27 @@ creditdebitRouter
                 else {
                     CreditDebit.findOne({ 'created_by': decoded._id }).then((customer) => {
 
-                        NewPendingAmount = customer.PendingAmount + PendingAmount;
-                        if (NewPendingAmount > customer.BalanceAmount) {
+                        NewpendingAmount = customer.pendingAmount + pendingAmount;
+                        if (NewpendingAmount > customer.balanceAmount) {
 
-                            PendingAmount1 = NewPendingAmount - customer.BalanceAmount;
+                            pendingAmount1 = NewpendingAmount - customer.balanceAmount;
 
                             CreditDebit.findOneAndUpdate({ 'created_by': decoded._id }, {
                                 $set: {
-                                    BalanceAmount: 0,
-                                    PendingAmount: PendingAmount1
+                                    balanceAmount: 0,
+                                    pendingAmount: pendingAmount1
                                 }
                             }, { new: true }).then((customer) => {
                                 res.json(customer);
                             })
-                        } else { //(NewPendingAmount < customer.BalanceAmount)
+                        } else { //(NewpendingAmount < customer.balanceAmount)
 
-                            NewBalanceAmount = customer.BalanceAmount - NewPendingAmount;
+                            NewbalanceAmount = customer.balanceAmount - NewpendingAmount;
 
                             CreditDebit.findOneAndUpdate({ 'created_by': decoded._id }, {
                                 $set: {
-                                    PendingAmount: 0,
-                                    BalanceAmount: NewBalanceAmount
+                                    pendingAmount: 0,
+                                    balanceAmount: NewbalanceAmount
                                 }
                             }, { new: true }).then((customer) => {
                                 res.json(customer);
@@ -83,14 +86,13 @@ creditdebitRouter
                 res.json(err);
             })
         }
-        else if (req.body.BillAmount < req.body.PaidAmount) {
-
-            var BalanceAmount = req.body.PaidAmount - req.body.BillAmount;
+        else if (req.body.billAmount < req.body.paidAmount) {
+            var balanceAmount = req.body.paidAmount - req.body.billAmount;
             CreditDebit.find({ 'created_by': decoded._id }).then((customer) => {
 
                 if (!customer[0]) {
                     var creditDebit = new CreditDebit();
-                    creditDebit.BalanceAmount = BalanceAmount;
+                    creditDebit.balanceAmount = balanceAmount;
                     creditDebit.created_by = decoded._id;
                     creditDebit.updated_by = decoded._id;
 
@@ -102,24 +104,24 @@ creditdebitRouter
 
                     CreditDebit.findOne({ 'created_by': decoded._id }).then((customer) => {
 
-                        NewBalanceAmount = customer.BalanceAmount + BalanceAmount;
-                        if (NewBalanceAmount > customer.PendingAmount) {
-                            BalanceAmount1 = NewBalanceAmount - customer.PendingAmount;
+                        NewbalanceAmount = customer.balanceAmount + balanceAmount;
+                        if (NewbalanceAmount > customer.pendingAmount) {
+                            balanceAmount1 = NewbalanceAmount - customer.pendingAmount;
                             CreditDebit.findOneAndUpdate({ 'created_by': decoded._id }, {
                                 $set: {
-                                    BalanceAmount: BalanceAmount1,
-                                    PendingAmount: 0
+                                    balanceAmount: balanceAmount1,
+                                    pendingAmount: 0
                                 }
                             }, { new: true }).then((customer) => {
                                 res.json(customer);
                             })
 
-                        } else {  // (BalanceAmount < customer.PendingAmount)
-                            NewPendingAmount = customer.PendingAmount - NewBalanceAmount;
+                        } else {  // (balanceAmount < customer.pendingAmount)
+                            NewpendingAmount = customer.pendingAmount - NewbalanceAmount;
                             CreditDebit.findOneAndUpdate({ 'created_by': decoded._id }, {
                                 $set: {
-                                    PendingAmount: NewPendingAmount,
-                                    BalanceAmount: 0
+                                    pendingAmount: NewpendingAmount,
+                                    balanceAmount: 0
                                 }
                             }, { new: true }).then((customer) => {
                                 res.json(customer);
@@ -139,8 +141,11 @@ creditdebitRouter
         var decoded = jwt.verify(token[1], config.secret);
 
         CreditDebit.find({ 'created_by': decoded._id }).then((customer) => {
-
-            res.status(200).json(customer);
+            
+              pendingAmount=customer[0].pendingAmount;
+              balanceAmount=customer[0].balanceAmount;
+            
+            res.status(200).json({pendingAmount,balanceAmount});
         },(err)=>{
             res.status(400).json(err);
         })

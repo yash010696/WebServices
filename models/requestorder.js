@@ -6,7 +6,7 @@ var Franchise=require('./../models/franchise');
 
 var RequestOrderSchema = new mongoose.Schema({
     requestId:{
-        type:Number,
+        type:String,
         required:true,
         unique:true,
         default:1
