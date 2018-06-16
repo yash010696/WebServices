@@ -10,7 +10,7 @@ var Customer = require('./../models/customer');
 var Franchise = require('./../models/franchise');
 var Area = require('../models/area');
 var sendmail = require('./../middlewear/mail');
-var generateSms=require('./../middlewear/sms');
+var generateSms = require('./../middlewear/sms');
 
 mobilecustomerRouter
     .get('/getarea', (req, res) => {
@@ -26,16 +26,16 @@ mobilecustomerRouter
         else {
             Customer.findOne({ 'mobile': req.body.mobile }, function (err, user) {
                 if (err)
-                    res.status(400).json({ Message: "Enter Valid Values!" });
+                    res.status(400).json({ Success: false, Message: "Enter Valid Values!" });
                 if (user)
-                    res.status(200).json({ Message: "Mobile No. is taken." });
+                    res.status(200).json({ Success: false, Message: "Mobile No. is taken." });
 
                 else {
                     Customer.findOne({ 'email': req.body.email }, function (err, user) {
                         if (err)
-                            res.status(400).json({ Message: "Enter Valid Values!" });
+                            res.status(400).json({ Success: false, Message: "Enter Valid Values!" });
                         if (user)
-                            res.status(200).json({ Message: "Email Id is taken." });
+                            res.status(200).json({ Success: false, Message: "Email Id is taken." });
                         else {
                             Customer.find().then((results) => {
                                 var count = results.length;
@@ -51,15 +51,14 @@ mobilecustomerRouter
 
                                 req.body.referral_Code = ReferralCode;
                                 req.body.id = counter;
-                                console.log(req.body);
                                 var customer = new Customer(req.body);
                                 customer.save().then((user) => {
                                     var id = user._id;
-                                    generateSms(user.mobile,'Registration Successfull');
+                                    generateSms(user.mobile, 'Registration Successfull');
                                     sendmail(user.email, 'Registration Successfull');
                                     res.status(200).json({ id, Success: true, Message: "Registration Successfull" });
                                 }, (err) => {
-                                    res.status(400).json({ Message: "Enter Valid Values!!" });
+                                    res.status(400).json({ Success: false, Message: "Enter Valid Values!!" });
                                 })
                             })
                         }
@@ -91,7 +90,7 @@ mobilecustomerRouter
 
             Customer.findOneAndUpdate({ '_id': decoded._id }, { "$push": { "address[0]": { "home[0]": home } } }, function (err, user) {
                 if (err) {
-                    res.json(err)
+                    res.status(200).json({ Success: false, Message: 'Unable to update address.' });
                 } if (user) {
                     res.status(200).json({ Success: true, Message: 'Address Added Successfully' });
                 }
@@ -106,7 +105,7 @@ mobilecustomerRouter
             }
             Customer.update({ '_id': decoded._id }, { "$push": { "address.$.other.$": other } }, function (err, user) {
                 if (err) {
-                    res.json(err)
+                    res.status(200).json({ Success: false, Message: 'Unable to update address.' });
                 } if (user) {
                     res.status(200).json({ Success: true, Message: 'Address Added Successfully!' });
                 }

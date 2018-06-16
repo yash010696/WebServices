@@ -16,7 +16,7 @@ function otpGenerate() {
         var rnum = Math.floor(Math.random() * chars.length);
         otp += chars.substring(rnum, rnum + 1);
     }
-    localStorage.setItem('otp',otp);
+    localStorage.setItem('otp', otp);
     setTimeout(() => {
         localStorage.removeItem('otp')
     }, 300000); //1000ms=1 sec // 300000ms=300sec=5min
@@ -33,20 +33,20 @@ otpRouter
         Customer.find({ 'mobile': phone }).then((user) => {
 
             if (!user[0]) {
-                res.status(200).json({ Message: 'Authentication Failed.No User Found' });
+                res.status(200).json({ Success: false, Message: 'Authentication Failed.No User Found' });
             }
             else {
 
                 token = jwt.sign(user[0].toJSON(), config.secret, { expiresIn: 604800 });
                 otp = otpGenerate();
                 generateSms(phone, `Your Otp is ${otp}`).then((data) => {
-                    res.status(200).json({ Message: 'Otp send to mobile number.' });
-                },(err)=>{
-                    res.status(400).json({ Message: 'Invalid Phone Number' });
+                    res.status(200).json({ Success: true, Message: 'Otp send to mobile number.' });
+                }, (err) => {
+                    res.status(400).json({ Success: false, Message: 'Invalid Phone Number' });
                 })
             }
         }).catch((err) => {
-            res.status(400).json({ Message: 'Invalid Phone Number' });
+            res.status(400).json({ Success: false, Message: 'Invalid Phone Number' });
         })
     })
 
@@ -60,7 +60,7 @@ otpRouter
             res.status(200).header('x-auth', `JWT ${token}`).json({ token: 'JWT ' + token, Success: true, Message: 'Logged In Successfully' });
         } else {
             localStorage.removeItem('otp');
-            res.status(200).json({ Message: 'Invalid Otp' });
+            res.status(200).json({ Success: false, Message: 'Invalid Otp' });
         }
 
     })
@@ -70,9 +70,9 @@ otpRouter
 
         otp = otpGenerate();
         generateSms(phone, `Your Otp is ${otp}`).then((data) => {
-            res.status(200).json({ data, Message: 'Otp send to mobile number.' });
+            res.status(200).json({ data, Success: true, Message: 'Otp send to mobile number.' });
         }, (err) => {
-            res.status(200).json({ Message: `${err}` });
+            res.status(200).json({ Success: false, Message: `${err}` });
         });
 
     })

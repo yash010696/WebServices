@@ -16,10 +16,12 @@ customerProfileRouter
 
         Customer.findOne({ '_id': decoded._id }).then((user) => {
             if (!user) {
-                res.status(400).json({ Message: "You have to Logged In!!" });
+                res.status(200).json({Success:false, Message: "You have to Logged In!!" });
             } else {
                 res.status(200).json(user);
             }
+        }).catch((err)=>{
+            res.status(400).json(err);
         });
     })
 
@@ -31,9 +33,9 @@ customerProfileRouter
             $set:req.body
         }, { new: true }).then((user) => {
             if (!user) {
-                res.status(404).json({ Message: 'No User Found' });
+                res.status(200).json({Success:false, Message: 'No User Found' });
             }
-            res.status(200).json({user, Success: true, Message: 'Profile Updated Successfully' });
+            res.status(200).json({Success: true, Message: 'Profile Updated Successfully' });
 
         }).catch((err) => {
             res.status(400).json(err);
