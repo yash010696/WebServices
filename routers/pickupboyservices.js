@@ -4,15 +4,9 @@ var passport = require('passport');
 require('./../config/passport')(passport);
 var config = require('./../config/config');
 
-var { RequestOrder } = require('./../models/requestorder');
+
 var { OrderStatus } = require('./../models/orderstatus');
-var { UnpickedOrder } = require('./../models/unpickedorders');
-var { UndeliveredOrder } = require('./../models/undeliveredorders');
 var { PartialOrder } = require('./../models/partialorder');
-var { ReadyOrder } = require('./../models/readyorder');
-var { OrderDelivered } = require('./../models/ordersdelivered');
-
-
 
 var pickupboyserviceRouter = express.Router();
 

@@ -10,6 +10,7 @@ var Customer = require('./../models/customer');
 var Franchise = require('./../models/franchise');
 var Area = require('../models/area');
 var sendmail = require('./../middlewear/mail');
+var generateSms=require('./../middlewear/sms');
 
 mobilecustomerRouter
     .get('/getarea', (req, res) => {
@@ -21,20 +22,20 @@ mobilecustomerRouter
     .post('/registration', (req, res) => {
 
         if (req.body.mobile.length != 10)
-            res.status(400).json({ Message: "Enter Valid Mobile Number." });
+            res.status(200).json({ Message: "Enter Valid Mobile Number." });
         else {
             Customer.findOne({ 'mobile': req.body.mobile }, function (err, user) {
                 if (err)
                     res.status(400).json({ Message: "Enter Valid Values!" });
                 if (user)
-                    res.status(400).json({ Message: "Mobile No. is taken." });
+                    res.status(200).json({ Message: "Mobile No. is taken." });
 
                 else {
                     Customer.findOne({ 'email': req.body.email }, function (err, user) {
                         if (err)
                             res.status(400).json({ Message: "Enter Valid Values!" });
                         if (user)
-                            res.status(400).json({ Message: "Email Id is taken." });
+                            res.status(200).json({ Message: "Email Id is taken." });
                         else {
                             Customer.find().then((results) => {
                                 var count = results.length;
@@ -50,11 +51,12 @@ mobilecustomerRouter
 
                                 req.body.referral_Code = ReferralCode;
                                 req.body.id = counter;
-
+                                console.log(req.body);
                                 var customer = new Customer(req.body);
                                 customer.save().then((user) => {
                                     var id = user._id;
-                                    sendmail(user.email, 'Registrstion Successfull');
+                                    generateSms(user.mobile,'Registration Successfull');
+                                    sendmail(user.email, 'Registration Successfull');
                                     res.status(200).json({ id, Success: true, Message: "Registration Successfull" });
                                 }, (err) => {
                                     res.status(400).json({ Message: "Enter Valid Values!!" });

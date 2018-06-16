@@ -16,6 +16,10 @@ var RequestOrderSchema = new mongoose.Schema({
         required:true,
         trim:true
     },
+    customer:{
+        type:String,
+        trim:true
+    },
     quantity:{
         type:Number,
     },

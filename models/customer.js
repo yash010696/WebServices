@@ -5,7 +5,7 @@ var ObjectId = mongoose.Types.ObjectId;
 
 var Admininfo = require('./admininfo');
 // var Area = require('./area');
-// var Franchise = require('./franchise');
+var Franchise = require('./franchise');
 var Ordertype = require('./ordertype');
 var customerSchema = new Schema({
     id: {
@@ -37,7 +37,7 @@ var customerSchema = new Schema({
         type: String
     },
     dob: {
-        type: Date
+        type: String
     },
     email: {
         type: String,

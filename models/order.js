@@ -6,6 +6,7 @@ var Admininfo = require('./admininfo');
 var Customer = require('./customer');
 var Franchise = require('./franchise');
 var Servicetype = require('./servicetype');
+var order_Status=require('./orderstate');
 var orderSchema = new Schema({
   // id: {
   //   type:Number,
@@ -32,6 +33,9 @@ var orderSchema = new Schema({
   order_amount: {
     type:String,
     required:true,
+  },
+  order_status:{
+    type:String 
   },
   created_by:{
       type: mongoose.Schema.Types.ObjectId,

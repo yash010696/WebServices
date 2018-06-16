@@ -33,14 +33,14 @@ otpRouter
         Customer.find({ 'mobile': phone }).then((user) => {
 
             if (!user[0]) {
-                res.status(404).json({ Message: 'Authentication Failed.No User Found' });
+                res.status(200).json({ Message: 'Authentication Failed.No User Found' });
             }
             else {
 
                 token = jwt.sign(user[0].toJSON(), config.secret, { expiresIn: 604800 });
                 otp = otpGenerate();
                 generateSms(phone, `Your Otp is ${otp}`).then((data) => {
-                    res.status(200).json({ Message: 'Verify The Number!' });
+                    res.status(200).json({ Message: 'Otp send to mobile number.' });
                 },(err)=>{
                     res.status(400).json({ Message: 'Invalid Phone Number' });
                 })
@@ -60,7 +60,7 @@ otpRouter
             res.status(200).header('x-auth', `JWT ${token}`).json({ token: 'JWT ' + token, Success: true, Message: 'Logged In Successfully' });
         } else {
             localStorage.removeItem('otp');
-            res.status(400).json({ Message: 'Invalid Otp' });
+            res.status(200).json({ Message: 'Invalid Otp' });
         }
 
     })
@@ -70,9 +70,9 @@ otpRouter
 
         otp = otpGenerate();
         generateSms(phone, `Your Otp is ${otp}`).then((data) => {
-            res.status(200).json({ data, Message: 'Verify The Number!' });
+            res.status(200).json({ data, Message: 'Otp send to mobile number.' });
         }, (err) => {
-            res.status(400).json({ Message: `${err}` });
+            res.status(200).json({ Message: `${err}` });
         });
 
     })

@@ -23,6 +23,10 @@ requestordersRouter
 
             var token = req.header('Authorization').split(' ');
             var decoded = jwt.verify(token[1], config.secret);
+            var name;
+            Customer.findById({'_id':decoded._id}).then((customer)=>{
+                name =customer.first_Name;
+            });
             var counter;
             var orderid;
             var areacode;
@@ -33,7 +37,7 @@ requestordersRouter
                   res.status(500).send(err);
                   return;
                 }
-                console.log('The Franchise  is', franchises);
+                // console.log('The Franchise  is', franchises);
                 areacode= franchises[0].area.code;
                 RequestOrder.find({franchise:franchises[0]._id}).exec(function (err, results) {
                   var count = results.length;
@@ -45,6 +49,7 @@ requestordersRouter
                 //   console.log("requestId",requestId)
                 req.body.franchise=franchises[0]._id;
                   req.body.requestId=requestId;
+                  req.body.customer=name;
                   req.body.created_by = decoded._id;
                   req.body.updated_by = decoded._id;
                   req.body.state=true;
