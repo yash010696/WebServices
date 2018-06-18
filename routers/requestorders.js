@@ -68,7 +68,7 @@ requestordersRouter
                             var y=date.getFullYear();
                             // date =  new Date(m + '/' + d + '/' + y);
                             date =m + '/' + d + '/' + y;
-                            console.log('/////////////',date);
+                            // console.log('/////////////',date);
                             generateSms(mobile,
                                 `Dear ${name}, Your Pick up no ${requestId} with ${franchisename} is booked for ${date} between ${order.timeSlot}.`
                             )

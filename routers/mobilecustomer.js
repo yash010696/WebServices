@@ -64,7 +64,6 @@ mobilecustomerRouter
                                             `Dear ${user.first_Name}, Thank you for being part of 24Klen Laundry Science. Your username is ${user.mobile}. Happy Cleaning!`,
                                             'New User Registered'
                                         );
-
                                         res.status(200).json({ id, Success: true, Message: "Registration Successfull" });
                                     }, (err) => {
                                         res.status(400).json({ Success: false, Message: "Enter Valid Values!!" });
@@ -72,7 +71,6 @@ mobilecustomerRouter
                                 })
                             })
                         }
-
                     })
                 }
             })
