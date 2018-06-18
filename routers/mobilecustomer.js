@@ -123,9 +123,6 @@ mobilecustomerRouter
                 society: req.body.society,
                 landmark: req.body.landmark,
             }
-            Customer.find({ '_id': decoded._id }).then((address) => {
-                console.log('//////////////////////', address[0].address[0].other[0]);
-            })
             Customer.findOneAndUpdate({ '_id': decoded._id }, { $set: { 'address.0.home': home } }, function (err, user) {
                 if (err) {
                     res.status(200).json({ Success: false, Message: 'Unable to update address.' });
