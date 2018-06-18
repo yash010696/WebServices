@@ -26,7 +26,7 @@ MyOrdersRouter
         var token = req.header('Authorization').split(' ');
         var decoded = jwt.verify(token[1], config.secret)
         console.log(decoded._id);
-        Order.find({ 'created_by': decoded._id }).then((orders) => {
+        Order.find({ 'customer': decoded._id }).then((orders) => {
             res.status(200).json(orders);
         }, (err) => {
             res.status(400).json(err);

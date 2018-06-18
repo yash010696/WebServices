@@ -26,17 +26,16 @@ customerProfileRouter
     })
 
     .put('/updateprofile/:id', passport.authenticate('jwt', { session: false }), (req, res) => {
-
+        
         var id = req.params.id;
-
         Customer.findOneAndUpdate({ '_id': id }, {
             $set:req.body
         }, { new: true }).then((user) => {
             if (!user) {
                 res.status(200).json({Success:false, Message: 'No User Found' });
+            }else{
+                res.status(200).json({Success: true, Message: 'Profile Updated Successfully' });
             }
-            res.status(200).json({Success: true, Message: 'Profile Updated Successfully' });
-
         }).catch((err) => {
             res.status(400).json(err);
         })

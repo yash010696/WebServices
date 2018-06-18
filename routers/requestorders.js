@@ -9,6 +9,7 @@ var { OrderStatus } = require('./../models/orderstatus');
 var Customer = require('./../models/customer');
 var Franchise = require('./../models/franchise');
 var area = require('./../models/area');
+var generateSms=require('./../middlewear/sms');
 
 var requestordersRouter = express.Router();
 
@@ -23,9 +24,10 @@ requestordersRouter
 
             var token = req.header('Authorization').split(' ');
             var decoded = jwt.verify(token[1], config.secret);
-            var name;
+            var name; var mobile;
             Customer.findById({ '_id': decoded._id }).then((customer) => {
-                name = customer.first_Name;
+                name = customer.first_Name,
+                mobile=customer.mobile
             });
             var counter;
             var orderid;
@@ -37,7 +39,8 @@ requestordersRouter
                         res.status(500).send(err);
                         return;
                     }
-                    // console.log('The Franchise  is', franchises);
+                    console.log('The Franchise  is', franchises);
+                    franchisename=franchises[0].franchise_Name;
                     areacode = franchises[0].area.code;
                     RequestOrder.find({ franchise: franchises[0]._id }).exec(function (err, results) {
                         var count = results.length;
@@ -56,9 +59,20 @@ requestordersRouter
                         req.body.status = true;
                         // console.log('///////////////',req.body);
                         var requestOrder = new RequestOrder(req.body);
-
                         requestOrder.save().then((order) => {
-                            res.status(200).json({ Success: true, Message: 'Order Placed Successfully' });
+                            var requestId = order.requestId;
+
+                            var date = new Date(order.pickupDate);
+                            var d=date.getDate() + 1;
+                            var m = date.getMonth() + 1;
+                            var y=date.getFullYear();
+                            // date =  new Date(m + '/' + d + '/' + y);
+                            date =m + '/' + d + '/' + y;
+                            // console.log('/////////////',date);
+                            // generateSms(mobile,
+                            //     `Dear ${name}, Your Pick up no ${requestId} with ${franchisename} is booked for ${date} between ${order.timeSlot}.`
+                            // )
+                            res.status(200).json({ requestId, Success: true, Message: 'Order Placed Successfully' });
                         }, (err) => {
                             res.status(400).json(err);
                         })
@@ -79,10 +93,21 @@ requestordersRouter
         })
     })
 
+    .get('/requestorder/:id', passport.authenticate('jwt', { session: false }), (req, res) => {
+
+        RequestOrder.findOne({ 'requestId': req.params.id }).then((order) => {
+            if(!order){
+                res.status(200).json({ Success: false, Message:"Order Not Found" });    
+            }
+            res.status(200).json({ Success: true, order });
+        }).catch((err) => {
+            res.status(400).json(err);
+        });
+
+    })
     .put('/updaterequestorder/:id', passport.authenticate('jwt', { session: false }), (req, res) => {
 
         var requestId = req.params.id;
-        console.log(req.body);
         RequestOrder.findOneAndUpdate({ 'requestId': requestId }, {
             $set: req.body
         }, { new: true }).then((requestorder) => {

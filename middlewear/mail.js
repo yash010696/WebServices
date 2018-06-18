@@ -1,6 +1,6 @@
 var nodemailer = require('nodemailer');
 
-module.exports=function mail(email,message){
+module.exports=function mail(email,message,subject){
 
     return new Promise((resolve, reject) => {
         var transporter = nodemailer.createTransport({
@@ -9,15 +9,15 @@ module.exports=function mail(email,message){
             port:587,
             transportMethod: 'SMTP',
             auth: {
-              // user: 'yashshah2331@gmail.com',
-              // pass:'yash2331'
+              user: 'sunmit.testing@gmail.com',
+              pass: 'Sunmit123@'
             }
           });
           
           var mailOptions = {
-            from: '"yash" <yashshah2331@gmail.com>',
+            from: ' "Admin" <donotreply@24klen.com>',
             to: email,
-            subject: 'Sending Email using Node.js',
+            subject: subject,
             text: message
           };
           
