@@ -1,72 +1,69 @@
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 
-var {Customer}=require('./customer');
-var Franchise=require('./../models/franchise');
-var Servicetype=require('./../models/servicetype');
+var Customer = require('./customer');
+var Franchise = require('./../models/franchise');
+var Servicetype = require('./../models/servicetype');
+var Timeslot = require('./../models/timeslot');
+var User = require('./../models/user');
 
 
 var RequestOrderSchema = new mongoose.Schema({
-    requestId:{
-        type:String,
-        required:true,
-        unique:true,
-        default:1
+    requestId: {
+        type: String,
+        required: true,
+        unique: true,
+        default: 1
     },
-    locationType:{
+    locationType: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Customer',
+        ref:'Customer'
     },
-    customer:{
-        type:String,
-        trim:true
+    customer: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref:'Customer'
     },
-    quantity:{
-        type:Number,
+    quantity: {
+        type: Number,
     },
-    serviceName:{
-        type:String,
-        trim:true
-    }, 
-    serviceType:{
+    serviceName: {
+        type: String,
+        trim: true
+    },
+    servicetype: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Servicetype',
     },
-    pickupDate:{
-        type:Date,
-        required:true
+    pickupDate: {
+        type: Date,
+        required: true
     },
-    timeSlot:{
-        type:String,
-        required:true,
-        trim:true
+    timeSlot: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Timeslot'
     },
-    franchise:{
+    franchise: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Franchise',
     },
-    created_by:{
+    created_by: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Customer',
-        required:true
-      },
-      updated_by:{
+        ref: 'User'
+    },
+    updated_by: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Customer',
-        required:true
-      },
-      state:{
+        ref: 'User'
+    },
+    state: {
         type: Boolean
-      },
-      status:{
+    },
+    status: {
         type: Boolean
-      }
+    }
 
 },
-    { timestamps: true }
-)
+{ timestamps: true },
+{ collection: 'requestorder' }
+);
 
-
-var RequestOrder = mongoose.model('RequestOrder', RequestOrderSchema, collection = "requestorder");
-
-module.exports = { RequestOrder };
+module.exports = mongoose.model('RequestOrder', RequestOrderSchema );

@@ -65,6 +65,7 @@ var { MyOrdersRouter } = require('./routers/myorders');
 var { pickupboyserviceRouter } = require('./routers/pickupboyservices');
 var { creditdebitRouter } = require('./routers/creditdebit');
 var {mfranchiseRouter}=require('./routers/mfranchise');
+var {pickupdeliveryboyRouter}=require('./routers/pickupdeliveryboy');
 
 
 const router = express.Router()
@@ -131,6 +132,7 @@ app.use('/api', pickupboyserviceRouter);
 app.use('/api', customerProfileRouter);
 app.use('/api', creditdebitRouter);
 app.use('/api', mfranchiseRouter);
+app.use('/api', pickupdeliveryboyRouter);
 
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");

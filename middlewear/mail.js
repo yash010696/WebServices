@@ -19,7 +19,7 @@ module.exports=function mail(email,message,subject,attachment){
             to: email,
             subject: subject,
             text: message,
-            attachments: [{'filename': 'attachment.txt', 'content': data}]
+            // attachments: [{'filename': 'attachment.txt', 'content': data}]
           };
           
           transporter.sendMail(mailOptions, function(error, info){
