@@ -58,29 +58,48 @@ mobilecustomerRouter
                             var newDate = new Date(date.getTime() + Math.abs(date.getTimezoneOffset() * 60000))
                             req.body.dob = newDate;
 
-                            order_type.find({ 'order_type': "on-line" }).then((type) => {
-                                req.body.order_type = type[0]._id;
-                                var customer = new Customer(req.body);
-                                customer.save().then((user) => {
-                                    var id = user._id;
-                                    generateSms(user.mobile,
-                                        `Dear ${user.first_Name}, Thank you for being part of 24Klen Laundry Science. Your username is ${user.mobile}. Happy Cleaning!`
-                                    );
-                                    generateMail(user.email,
-                                        `Dear ${user.first_Name}, 
-                                            Thank you for being part of 24Klen Laundry Science. Your username is ${user.mobile}. 
+                            Franchise.find({ statee: true, area: { $in: [req.body.area] } }).then((franchise) => {
+                                req.body.franchise = franchise[0]._id;
 
-                                            Happy Cleaning!
+                                order_type.find({ 'order_type': "on-line" }).then((type) => {
+                                    req.body.order_type = type[0]._id;
+                                    var customer = new Customer(req.body);
+                                    customer.save().then((user) => {
+                                        var id = user._id;
+                                        generateSms(user.mobile,
+                                            `Dear ${user.first_Name}, Thank you for being part of 24Klen Laundry Science. Your username is ${user.mobile}. Happy Cleaning!`
+                                        );
+                                        generateMail(user.email,
+                                            `<!DOCTYPE html>
+                                            <html>
+                                            <head>
+                                                <meta charset="utf-8" />
+                                                <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                                                <title>Page Title</title>
+                                                <meta name="viewport" content="width=device-width, initial-scale=1">
+                                                <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+                                                <script src="main.js"></script>                                                
+                                                </head>
+                                                <body>
+                                                    <tr><b>Dear ${user.first_Name},</b></tr><br><br>
+            
+                                                    <tr>Thank you for being part of 24Klen Laundry Science. Your username is ${user.mobile}.</tr><br><br>
+                                                       
+                                                    <tr>Happy Cleaning!</tr><br><br>
+                                                                                               
+                                                    <tr>Thanks,</tr><br><br>
+                                                                                                       
+                                                    <tr>Team 24Klen Laundry Science</tr>
+                                                </body>
+                                                </html>`,
 
-                                            Thanks,
-
-                                            Team 24Klen Laundry Science`,
-                                        'Successful Registration with 24klen Laundry Science'
-                                    );
-                                    res.status(200).json({ id, Success: true, Message: "Registration Successfull" });
-                                }, (err) => {
-                                    res.status(400).json({ Success: false, Message: "Enter Valid Values!!" });
+                                            'Successful Registration with 24klen Laundry Science'
+                                        );
+                                        res.status(200).json({ id, Success: true, Message: "Registration Successfull" });
+                                    })
                                 })
+                            }).catch((err) => {
+                                res.status(400).json({ Success: false, Message: "Enter Valid Values!!" });
                             })
                             // })
                         }
@@ -89,11 +108,10 @@ mobilecustomerRouter
             })
         }
     })
+
     .post('/address', (req, res) => {
         var token = req.header('Authorization').split(' ');
         var decoded = jwt.verify(token[1], config.secret);
-
-
         var locationType = req.body.locationType;
         if (locationType === "Home") {
             var home = {
@@ -102,8 +120,7 @@ mobilecustomerRouter
                 society: req.body.society,
                 landmark: req.body.landmark,
             }
-
-            Customer.findOneAndUpdate({ '_id': decoded._id }, { "$push": { 'address.0.home': home } }, function (err, user) {
+            Customer.findOneAndUpdate({ '_id': decoded._id }, { $set: { 'address.0.home': home } }, function (err, user) {
                 if (err) {
                     res.status(200).json({ Success: false, Message: 'Unable to Add address.' });
                 } if (user) {
@@ -117,7 +134,7 @@ mobilecustomerRouter
                 society: req.body.society,
                 landmark: req.body.landmark,
             }
-            Customer.update({ '_id': decoded._id }, { "$push": { 'address.0.other': other } }, function (err, user) {
+            Customer.update({ '_id': decoded._id }, { $set: { 'address.0.other': other } }, function (err, user) {
                 if (err) {
                     res.status(200).json({ Success: false, Message: 'Unable to Add address.' });
                 } if (user) {
@@ -125,7 +142,6 @@ mobilecustomerRouter
                 }
             })
         }
-
     })
 
     .put('/updateaddress', (req, res) => {
@@ -147,28 +163,26 @@ mobilecustomerRouter
 
         if (locationType === "Home") {
             var home = {
-                pincode: req.body.pincode,
-                flat_no: req.body.flat_no,
-                society: req.body.society,
-                landmark: req.body.landmark,
+                'address.0.home.0.pincode': req.body.pincode,
+                'address.0.home.0.flat_no': req.body.flat_no,
+                'address.0.home.0.society': req.body.society,
+                'address.0.home.0.landmark': req.body.landmark
             }
-
-            Customer.findOneAndUpdate({ '_id': decoded._id }, { $set: { 'address.0.home': home } }, function (err, user) {
+            Customer.findOneAndUpdate({ '_id': decoded._id }, { $set: home }, function (err, user) {
                 if (err) {
                     res.status(200).json({ Success: false, Message: 'Unable to update address.' });
                 } if (user) {
                     res.status(200).json({ Success: true, Message: 'Address Updated Successfully' });
                 }
             })
-
         } else if (locationType === "Other") {
             var other = {
-                pincode: req.body.pincode,
-                flat_no: req.body.flat_no,
-                society: req.body.society,
-                landmark: req.body.landmark,
+                'address.0.other.0.pincode': req.body.pincode,
+                'address.0.other.0.flat_no': req.body.flat_no,
+                'address.0.other.0.society': req.body.society,
+                'address.0.other.0.landmark': req.body.landmark
             }
-            Customer.update({ '_id': decoded._id }, { $set: { 'address.0.other': other } }, function (err, user) {
+            Customer.update({ '_id': decoded._id }, { $set: other }, function (err, user) {
                 if (err) {
                     res.status(200).json({ Success: false, Message: 'Unable to update address.' });
                 } if (user) {
@@ -176,7 +190,6 @@ mobilecustomerRouter
                 }
             })
         }
-
     })
 
     .post('/logout', (req, res) => {

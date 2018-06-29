@@ -6,7 +6,7 @@ var generateSms = require('./../middlewear/sms');
 var Pickupdeliveryboy = require('./../models/pickupdeliveryboy');
 
 var Customer = require('./../models/customer');
-var pickupdeliveryboyRouter = express.Router();
+var mpickupdeliveryboyRouter = express.Router();
 
 function otpGenerate() {
     var otp1 = "";
@@ -24,9 +24,10 @@ function otpGenerate() {
 }
 
 var token;
-pickupdeliveryboyRouter
+mpickupdeliveryboyRouter
     .post('/plogin', (req, res) => {
         let phone = req.body.mobile;
+        console.log(phone)
         localStorage.setItem('phone', phone);
         Pickupdeliveryboy.find({ 'mobile': phone }).then((user) => {
 
@@ -76,4 +77,4 @@ pickupdeliveryboyRouter
     //     });
     // })
 
-module.exports = { pickupdeliveryboyRouter };
+module.exports = { mpickupdeliveryboyRouter };
