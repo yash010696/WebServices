@@ -6,11 +6,12 @@ var jwt = require('jsonwebtoken');
 var Color = require('../models/color');
 var Verifytoken = require('./loginadmin');
 var colorRouter = express.Router();
+const checkAuth = require('../middlewear/check-auth');
 
 //Create router for  register the new subservice.
 colorRouter
     .route('/color')
-    .post(passport.authenticate('jwt', { session: false }), function(req, res) {
+    .post(checkAuth, function(req, res) {
 
 
         if (!req.body) {
@@ -36,7 +37,7 @@ colorRouter
             // var area = new Area(req.body);
             var code = req.body.code.toUpperCase();
             var color = new Color({
-                id: cc,
+                // id: cc,
                 color_name: req.body.color_name,
                 code: code,
                 created_by: req.body.admin_id,
@@ -60,7 +61,7 @@ colorRouter
 
 
 //Create router for fetching All subservice.
-.get(passport.authenticate('jwt', { session: false }), function(req, res) {
+.get(checkAuth, function(req, res) {
 
 
     Color.find({ state: true }, function(err, colors) {
@@ -78,7 +79,7 @@ colorRouter
 //Create router for fetching Single subservice.
 colorRouter
     .route('/colors/:colorID')
-    .get(passport.authenticate('jwt', { session: false }), function(req, res) {
+    .get(checkAuth, function(req, res) {
 
         console.log('GET /colors/:colorID');
 
@@ -99,7 +100,7 @@ colorRouter
     })
 
 //Create router for Updating subservice.
-.put(passport.authenticate('jwt', { session: false }), function(req, res) {
+.put(checkAuth, function(req, res) {
 
     console.log('PUT /colors/:colorID');
 
@@ -132,7 +133,7 @@ colorRouter
 })
 colorRouter
     .route('/colorss/:colorID')
-    .put(passport.authenticate('jwt', { session: false }), function(req, res) {
+    .put(checkAuth, function(req, res) {
         console.log('PUT /colorss/:colorID');
         var colorID = req.params.colorID;
         Color.findOne({ _id: colorID }, function(err, color) {

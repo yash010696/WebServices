@@ -5,213 +5,133 @@ require('./../config/passport')(passport);
 var config = require('./../config/config');
 
 var RequestOrder = require('./../models/requestorder');
-var { OrderStatus } = require('./../models/orderstatus');
+var OrderStatus = require('./../models/orderstatus');
 var Customer = require('./../models/customer');
 var Franchise = require('./../models/franchise');
 var area = require('./../models/area');
 var generateSms = require('./../middlewear/sms');
-var generateMail = require('./../middlewear/mail');
 var serviceType = require('./../models/servicetype');
-var Timeslot = require('./../models/timeslot');
-
-
+const checkAuth = require('../middlewear/check-auth');
 var requestordersRouter = express.Router();
+var sendmail = require('./../middlewear/mail');
+var generateSms = require('./../middlewear/sms');
 
+
+ //Create Request On Call
 requestordersRouter
-
-    //Create Request Order //Customer will create
-    .post('/requestorder', passport.authenticate('jwt', { session: false }), (req, res) => {
-
+    .route('/requestorder1')
+    .post(checkAuth, (req, res) => {
         if (!req.body) {
             res.status(200).json({ Success: false, Message: 'Please Enter Required Data.' });
-        } else {
-            var token = req.header('Authorization').split(' ');
-            var decoded = jwt.verify(token[1], config.secret);
-            var name; var mobile; var email;
-
-            Customer.findById({ '_id': decoded._id }).then((customer) => {
-                if (customer.address[0] == null) {
-                    res.status(200).json({ Success: false, Message: "Enter The Address" });
-                }
-                if (req.body.locationType == "Home") {
-                    if (customer.address[0].home[0] == null) {
-                        res.status(200).json({ Success: false, Message: "Home Address Not Found" });
-                    } else {
-                        req.body.locationType = customer.address[0].home[0]._id;
+        }
+        else {
+            var requestid;
+            var storecode;
+            Franchise.find({ _id: req.userData.franchise }).
+                exec(function (err, franchises) {
+                    if (err) {
+                        res.status(500).send(err);
+                        return;
                     }
-                }
-                else if (req.body.locationType == "Other") {
-                    if (customer.address[0].other[0] == null) {
-                        res.status(200).json({ Success: false, Message: "Other Address Not Found" });
-                    } else {
-                        req.body.locationType = customer.address[0].other[0]._id;
-                    }
-                }
-                name = customer.first_Name;
-                mobile = customer.mobile;
-                email = customer.email;
-
-                var counter; var orderid; var store_code;
-                Franchise.find({ statee: true, area: { $in: [req.body.area] } }).
-                    exec(function (err, franchises) {
-                        if (err) {
-                            res.status(500).send({ Success: flase, err });
-                            return;
-                        }
-                        // console.log('The Franchise  is', franchises);
-                        franchisename = franchises[0].franchise_Name;
-                        store_code = franchises[0].store_code;
-
-                        RequestOrder.find({ 'franchise': franchises[0]._id }).exec(function (err, results) {
-                            var count = results.length;
-                            counter = count + 1;
-                            var str = "" + counter;
-                            var pad = "0000";
-                            var ans = pad.substring(0, pad.length - str.length) + str;
-                            requestId = store_code + ans;
-
-                            var date = new Date(req.body.pickupDate);
-                            var newDate = new Date(date.getTime() + Math.abs(date.getTimezoneOffset() * 60000));
-
-                            Timeslot.find({ 'time_Slot': req.body.timeSlot }).then((data) => {
-                                req.body.timeSlot = data[0]._id;
-
-                                serviceType.find({ 'type': req.body.servicetype }).then((servicetype) => {
-                                    req.body.servicetype = servicetype[0]._id;
-                                    req.body.franchise = franchises[0]._id;
-                                    req.body.requestId = requestId;
-                                    req.body.pickupDate = newDate;
-                                    req.body.request_status = "Request Received";
-                                    req.body.pickupdelivery = null;
-                                    req.body.customer = decoded._id;
-                                    // req.body.created_by = decoded._id;
-                                    // req.body.updated_by = decoded._id;
-                                    req.body.state = true;
-                                    req.body.status = true;
-
-                                    // console.log('=============',req.body);
-                                    var requestOrder = new RequestOrder(req.body);
-                                    requestOrder.save().then((order) => {
-                                        var requestId = order.requestId;
-
-                                        var date = new Date(order.pickupDate);
-                                        var d = date + '';
-                                        var dateParts = d.split("GMT");
-                                        var date1 = dateParts[0].slice(0, 15);
-                                        generateMail(email,
-                                           `<!DOCTYPE html>
-                                           <html>
-                                           <head>
-                                               <meta charset="utf-8" />
-                                               <meta http-equiv="X-UA-Compatible" content="IE=edge">
-                                               <title>Page Title</title>
-                                               <meta name="viewport" content="width=device-width, initial-scale=1">
-                                               <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
-                                               <script src="main.js"></script>
-                                           </head>
-                                           <body>
-                                               <tr><b>Dear ${name},</b></tr><br><br>
-
-                                               <tr>Your Pick up no ${requestId} with ${franchisename} is booked for ${date1} between ${data[0].time_Slot}.</tr><br><br>
-                                           
-                                               <tr>Happy Cleaning!</tr><br><br>
-                                                                                   
-                                               <tr>Thanks,</tr><br><br>
-                                                                                           
-                                                <tr>Team 24Klen Laundry Science</tr>
-                                           </body>
-                                           </html>`,
-                                            `Successful Request Creation ${requestId} with 24klen Laundry Science`
-                                        );
-                                        generateSms(mobile,
-                                            `Dear ${name}, Your Pick up no ${requestId} with ${franchisename} is booked for ${date1} between ${data[0].time_Slot}.`
-                                        )
-                                        res.status(200).json({ requestId, Success: true, Message: 'Order Placed Successfully' });
-                                    })
-                                })
-                            }).catch((err) => {
-                                console.log(err);
-                                res.status(400).json({ err });
-                            })
-                        })
+                    console.log('The Franchise  is', req.userData.franchise);
+                    console.log('The Franchise  is', franchises[0].store_code);
+                    console.log(" req.userData.franchise ", req.userData.franchise);
+                    storecode = franchises[0].store_code;
+                    RequestOrder.find({ franchise: req.userData.franchise }).exec(function (err, results) {
+                        console.log("err", err);
+                        console.log("results", results);
+                        var count = results.length;
+                        counter = count + 1;
+                        var str = "" + counter;
+                        var pad = "0000";
+                        var ans = pad.substring(0, pad.length - str.length) + str;
+                        requestid = storecode + ans;
+                        console.log("requestid", requestid)
+                        savedata(requestid);
                     })
-            })
+                });
+        }
+        function savedata(requestid) {
+            var requestOrder = new RequestOrder({
+                requestId: requestid,
+                locationType: req.body.locationType,
+                customer: req.body.customerId,
+                pickupdelivery: null,
+                servicetype: req.body.serviceType,
+                pickupDate: req.body.pickupDate,
+                timeSlot: req.body.timeSlot,
+                franchise: req.body.franchise,
+                created_by: req.userData._id,
+                updated_by: req.userData._id,
+                request_status: "Request Received",
+                status: true,
+                state: true
+            });
+            requestOrder.save(function (err) {
+                if (err) {
+                    res.status(400).send(err);
+                    return;
+                }
+                res.json({ success: true, msg: 'Request created successfully!' });
+                Customer.findOne({ _id: req.body.customerId})
+                .populate(' franchise').
+                 exec(function (err, res) {
+                    console.log("customer data============",res);
+                    var customername = res.first_Name;
+                    var mobile = res.mobile;
+                    var store = res.franchise.franchise_Name;
+                    generateSms(mobile,
+                      `Dear ${customername}, Your Pick up no ${requestid} with ${store} is booked for ${ req.body.pickupDate} between ${req.body.timeSlot}.`
+                  );
+                  });
+            });
         }
     })
-
-    // All Request Order
-    .get('/requestorders/:franchise', passport.authenticate('jwt', { session: false }), (req, res) => {
-        RequestOrder.find({ 'franchise': req.params.franchise, 'state': true, 'status': true }).then((order) => {
-            res.status(200).json({ order, Success: true });
-        }, (err) => {
-            res.status(400).json(err);
-        })
-    })
-
-    .get('/requestorder/:id', passport.authenticate('jwt', { session: false }), (req, res) => {
-
-        RequestOrder.findOne({ 'requestId': req.params.id })
-            .populate('servicetype customer timeSlot')
-            .then((order) => {
-                if (!order) {
-                    res.status(200).json({ Success: false, Message: "Order Not Found" });
-                } else {
-                    // Customer.find({'address.0.home.0._id':order.locationType}).then((data)=>{
-                    //     order.locationType=data[0].address[0].home ;
-                    //     console.log(order);
-                    res.status(200).json({ Success: true, order });
-                    // })
-                }
-            }).catch((err) => {
-                res.status(400).json({ err });
-            })
-    })
-
-    .put('/updaterequestorder/:id', passport.authenticate('jwt', { session: false }), (req, res) => {
-        var requestId = req.params.id;
-        var token = req.header('Authorization').split(' ');
-        var decoded = jwt.verify(token[1], config.secret);
-        if (req.body.pickupDate) {
-            var date = new Date(req.body.pickupDate);
-            var newDate = new Date(date.getTime() + Math.abs(date.getTimezoneOffset() * 60000));
-            req.body.pickupDate = newDate;
+    .get(checkAuth, function (req, res) {
+        if (req.userData.role.indexOf("admin") > -1) {
+            RequestOrder.
+                find().sort({ requestId: 'ascending' }).
+                populate('customer servicetype franchise timeSlot created_by').
+                exec(function (err, requests) {
+                    if (err) {
+                        res.status(500).send(err);
+                        return;
+                    }
+                    res.json(requests);
+                });
         }
-        Timeslot.find({ 'time_Slot': req.body.timeSlot }).then((data) => {
-            req.body.timeSlot = data[0]._id;
-            serviceType.find({ 'type': req.body.servicetype }).then((servicetype) => {
-                req.body.servicetype = servicetype[0]._id;
-
-                Customer.findById({ '_id': decoded._id }).then((customer) => {
-                    if (req.body.locationType == "Home") {
-                        req.body.locationType = customer.address[0].home[0]._id;
+        else {
+            RequestOrder.
+                find({ created_by: req.userData._id }).sort({ requestId: 'ascending' }).
+                populate('customer servicetype franchise timeSlot ').
+                exec(function (err, requests) {
+                    if (err) {
+                        res.status(500).send(err);
+                        return;
                     }
-                    else if (req.body.locationType == "Other") {
-                        req.body.locationType = customer.address[0].other[0]._id;
-                    }
-                    RequestOrder.findOneAndUpdate({ 'requestId': requestId }, {
-                        $set: req.body
-                    }, { new: true }).then((requestorder) => {
-                        if (!requestorder) {
-                            res.status(200).json({ Success: false, Message: 'No Such Order Found' });
-                        }
-                        res.status(200).json({ Success: true, Message: 'Order Updated Successfully' });
-                    }).catch((err) => {
-                        res.status(400).json({ err });
-                    })
-                })
-            })
-        })
+                    res.json(requests);
+                });
+        }
     })
+//Assign Pickup boy
+requestordersRouter
+    .route('/assignpickuprequest/:requestId')
+    .put(checkAuth, function (req, res) {
+        var requestId = req.params.requestId;
+        RequestOrder.findOne({ _id: requestId }, function (err, requests) {
+            var myDateString = Date();
+            if (requests) {
+                requests.pickupdelivery = req.body.pickupboyid,
+                    requests.request_status = "Ready To Pickup",
 
-    // Cancelation of requestorder 
-    .put('/cancelorder/:id', (req, res) => {
-        RequestOrder.findOneAndUpdate({ 'requestId': req.params.id }, {
-            $set: { state: false }
-        }).then((order) => {
-            res.status(200).json({ Success: true, Message: "Order Cancelled" });
-        }).catch((err) => {
-            res.status(400).json({ err });
-        })
+                    requests.save();
+                res.json({requestdata:requests,  success: true, msg: 'Pickup Boy assigned successfully' });
+                return;
+            }
+            if (err) {
+                res.status(500).send(err);
+                return;
+            }
+        });
     })
-
-module.exports = { requestordersRouter }
+module.exports = requestordersRouter;
